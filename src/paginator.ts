@@ -96,7 +96,11 @@ export class EmbedPaginator {
         if (!this.pages[page]) throw new RangeError(`Cannot find embed at EmbedPaginator#pages[${page}]`)
 
         if (!this.instance) {
-            this.instance = await this.channel.send(this.pages[page]) as PaginatorBindedMessage
+            let message: PaginatorBindedMessage
+            if(this.options.channel) message = await this.options.channel.send(this.pages[page]) as PaginatorBindedMessage
+            else message = await this.message.edit(this.pages[page]) as PaginatorBindedMessage
+            
+            this.instance = message
             this.instance.paginator = this
 
             this.attachEvents()
