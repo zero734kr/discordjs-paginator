@@ -2,7 +2,7 @@ import {
     EmojiResolvable,
     MessageEmbed, TextChannel
 } from "discord.js"
-import { PaginatorBindedMessage, PaginatorOptions, PaginationChannel, PaginationCollectors } from "./types"
+import { PaginatorBindedMessage, PaginatorOptions, PaginationChannel, PaginationCollectors } from "../typings"
 
 
 export class EmbedPaginator {

@@ -1,3 +1,4 @@
 .eslint*
 yarn-*
 node_modules/
+test/
