@@ -1,6 +1,6 @@
 {
   "name": "discordjs-paginator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Easy and lite discordjs embed paginator to apply directly to your bot",
   "main": "dist/src/index.js",
   "repository": {
