@@ -362,13 +362,6 @@ discord.js@^12.5.1:
     tweetnacl "^1.0.3"
     ws "^7.3.1"
 
-discordjs-paginator@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/discordjs-paginator/-/discordjs-paginator-1.0.2.tgz#a241229d6e9d6f4f2476dd106b351a5fa479ca24"
-  integrity sha512-cpO1bSY27jjUnWN3T+LGBg0K5o/+/CNF7/T35fjUIS/3QQbeAL6pdg7IkNoy5wxgcZgtqtgVKpfyCXB37i4kcw==
-  dependencies:
-    discord.js "^12.5.1"
-
 doctrine@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/doctrine/-/doctrine-3.0.0.tgz#addebead72a6574db783639dc87a121773973961"

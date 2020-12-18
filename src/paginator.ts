@@ -29,6 +29,7 @@ export class EmbedPaginator {
         this.options.emojis.prev = options.emojis?.prev ?? "◀"
         this.options.emojis.stop = options.emojis?.stop ?? "⏹"
         this.options.emojis.next = options.emojis?.next ?? "▶"
+        this.options.pageText = options.pageText ?? "Page: {CURRENT_PAGE} / {TOTAL_PAGE}"
 
         this.instance = null
 
@@ -36,7 +37,7 @@ export class EmbedPaginator {
 
         this.currentPage = 0
         this.channel = options.channel ?? this.message.channel
-        
+
         this.collectors = {
             prev: null,
             stop: null,
@@ -52,13 +53,43 @@ export class EmbedPaginator {
         if (this.options.filterCallback && typeof this.options.filterCallback !== "function") throw new TypeError("Received options#filterCallback is not a function")
         if (typeof this.options.emojis !== "object") throw new TypeError("Only object type is allowed to options#emojis")
         if (Object.values(this.options.emojis).some((f: unknown) => typeof f !== "string")) throw new TypeError("One of emojis received from options#emojis is not a string.")
+        if (this.options.pageText && typeof this.options.pageText !== "string") throw new TypeError("Only type string is allowed for pageText")
     }
- 
+
+    private bindText(text: string, parameters: Record<string, unknown>): string {
+        if (typeof text !== "string") return text
+
+        const glob = text.match(/{(.*?)}/g)
+
+        if (!glob) return text
+
+        if (glob) glob.forEach(key => {
+            const keyname = key.replace(/{/gi, "").replace(/}/gi, "").replace(/%/gi, "")
+            text = text.replace(key, String(parameters[keyname]) || "")
+        })
+
+        return text
+    }
+
+    protected bindPageView(embed: MessageEmbed, pages: { CURRENT_PAGE: number, TOTAL_PAGE: number }): MessageEmbed {
+        if (!this.options.bindPageViewTo) return embed
+        if (this.options.bindPageViewTo === "footer") return embed.setFooter(this.bindText(this.options.pageText as string, {
+            CURRENT_PAGE: pages.CURRENT_PAGE,
+            TOTAL_PAGE: pages.TOTAL_PAGE
+        }))
+        if(this.options.bindPageViewTo === "author") return embed.setAuthor(this.bindText(this.options.pageText as string, {
+            CURRENT_PAGE: pages.CURRENT_PAGE,
+            TOTAL_PAGE: pages.TOTAL_PAGE
+        }))
+
+        return embed
+    }
+
     private attachEvents() {
-        if(!this.instance) throw new Error("Cannot find message instance to attach reaction events")
+        if (!this.instance) throw new Error("Cannot find message instance to attach reaction events")
 
         for (const key in this.collectors) {
-            if(!this.options.emojis?.[key]) throw new Error("Cannot find emoji to react to message instance")
+            if (!this.options.emojis?.[key]) throw new Error("Cannot find emoji to react to message instance")
 
             this.instance.react(this.options.emojis[key] as EmojiResolvable)
 
@@ -69,7 +100,10 @@ export class EmbedPaginator {
             this.instance?.reactions.cache.get(this.options.emojis?.prev as string)?.users.remove(user.id)
             if (this.currentPage === 0, !this.pages[this.currentPage - 1]) return
 
-            this.instance?.edit(this.pages[this.currentPage - 1])
+            this.instance?.edit(this.bindPageView(this.pages[this.currentPage - 1] as MessageEmbed, {
+                CURRENT_PAGE: this.currentPage,
+                TOTAL_PAGE: this.pages.length
+            }))
             this.currentPage -= 1
         })
 
@@ -84,7 +118,10 @@ export class EmbedPaginator {
             this.instance?.reactions.cache.get(this.options.emojis?.next as string)?.users.remove(user.id)
             if (this.currentPage === (this.pages.length + 1) || !this.pages[this.currentPage + 1]) return
 
-            this.instance?.edit(this.pages[this.currentPage + 1])
+            this.instance?.edit(this.bindPageView(this.pages[this.currentPage + 1] as MessageEmbed, {
+                CURRENT_PAGE: this.currentPage + 1,
+                TOTAL_PAGE: this.pages.length
+            }))
             this.currentPage += 1
         })
     }
@@ -97,9 +134,12 @@ export class EmbedPaginator {
 
         if (!this.instance) {
             let message: PaginatorBindedMessage
-            if(this.options.channel) message = await this.options.channel.send(this.pages[page]) as PaginatorBindedMessage
-            else message = await this.message.edit(this.pages[page]) as PaginatorBindedMessage
-            
+            if (this.options.channel) message = await this.options.channel.send(this.pages[page]) as PaginatorBindedMessage
+            else message = await this.message.edit(this.bindPageView(this.pages[page], {
+                CURRENT_PAGE: page + 1,
+                TOTAL_PAGE: this.pages.length
+            })) as PaginatorBindedMessage
+
             this.instance = message
             this.instance.paginator = this
 
@@ -116,7 +156,7 @@ export class EmbedPaginator {
         return this.pages[page]
     }
 
-    
+
     addEmbed(embed: MessageEmbed): this {
         if (!(embed instanceof MessageEmbed)) throw new TypeError("Only Discord#MessageEmbed instances is valid as pages")
 

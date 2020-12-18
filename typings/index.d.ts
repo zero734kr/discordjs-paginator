@@ -22,6 +22,7 @@ export interface PaginatorOptions {
     emojis?: PaginatorEmojis
     filterCallback(reaction: MessageReaction, user: User, emoji: string): boolean
     time?: number
+    pageText?: string
 }
 
 export interface PaginationCollectors extends Record<string, unknown> {
@@ -42,7 +43,9 @@ declare module "discordjs-paginator" {
         public pages: MessageEmbed[]
 
         private validateOptions(): void
+        private bindText(text: string, parameters: Record<string, unknown>): string
         private attachEvents(): void
+        protected bindPageView(embed: MessageEmbed, pages: { CURRENT_PAGE: number, TOTAL_PAGE: number }): MessageEmbed
         public show(page?: number): Promise<MessageEmbed>
         public addEmbed(embed: MessageEmbed): this
     }
